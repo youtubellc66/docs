@@ -1,0 +1,57 @@
+---
+title: "Ondo GM Asset Pricing: NAV Calculation and Updates"
+description: "Understand how Ondo GM calculates and publishes NAV-based token prices, the daily update schedule, and how price fields are structured in API responses."
+sidebarTitle: "Pricing"
+---
+
+The Ondo GM API provides price data for each supported tokenized asset. Prices are based on the net asset value (NAV) of the underlying fund, calculated and published by Ondo's fund administration team. Understanding how pricing works helps you interpret API responses correctly and build reliable integrations.
+
+## Net asset value (NAV)
+
+Each Ondo GM token is priced at its **net asset value per token** — the total market value of the fund's assets, divided by the number of tokens in circulation. NAV reflects the fair value of the underlying financial instruments (e.g., US Treasury bills) minus any fees.
+
+For example, if a fund holds $106,420,000 in Treasury assets and has 1,000,000 tokens outstanding, the NAV per token is **$106.42**.
+
+## Price update schedule
+
+Ondo GM prices are updated on the business day schedule of the underlying markets:
+
+| Asset type | Update frequency |
+|---|---|
+| US Treasury funds (OUSG) | Once per US business day, after market close |
+| Money market funds (OMMF) | Once per US business day |
+| Yield-bearing stablecoins (USDY) | Daily |
+
+Prices are not updated on US federal holidays or weekends. The `timestamp` field in every price response indicates exactly when the price was last set.
+
+<Note>
+  Because prices are based on end-of-day NAV calculations, the latest price for any given day is typically available after 6:00 PM US Eastern Time on business days.
+</Note>
+
+## Price fields in API responses
+
+Every price response includes the following fields:
+
+| Field | Type | Description |
+|---|---|---|
+| `assetId` | string | The asset identifier |
+| `price` | string | Current price as a decimal string (e.g., `"106.42"`) |
+| `currency` | string | The denomination currency (always `"USD"`) |
+| `timestamp` | string | ISO 8601 UTC timestamp of when this price was set |
+| `priceChange24h` | string | Absolute price change over the last 24 hours |
+| `priceChangePct24h` | string | Percentage price change over the last 24 hours |
+
+<Warning>
+  Prices are returned as **strings**, not numbers, to preserve decimal precision. Parse them with a decimal-aware library (e.g., `Decimal` in Python or `BigNumber` in JavaScript) to avoid floating-point errors in financial calculations.
+</Warning>
+
+## Historical prices
+
+For each asset, you can retrieve a time series of historical NAV prices using `GET /v1/assets/{assetId}/prices/historical`. This endpoint returns one price point per business day going back to the asset's inception date.
+
+Historical data is useful for:
+- Building performance charts
+- Backtesting yield calculations
+- Auditing price history for compliance
+
+See the [Historical Prices API reference](/api-reference/prices/historical) for query parameters and response format.

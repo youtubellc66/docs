@@ -1,0 +1,64 @@
+---
+title: "Ondo Global Markets: Tokenized RWA API Introduction"
+description: "Ondo Global Markets connects investors to tokenized real-world assets on-chain. Learn what the platform offers and how the API fits into your workflow."
+sidebarTitle: "Introduction"
+---
+
+Ondo Global Markets (GM) is a platform that issues and manages tokenized real-world assets (RWAs) — financial instruments such as US Treasury bills, money market funds, and other yield-bearing securities represented as on-chain tokens. The Ondo GM API gives developers and institutions programmatic access to asset data, live prices, and market information.
+
+## What are tokenized real-world assets?
+
+Tokenized real-world assets (RWAs) are blockchain-based representations of traditional financial instruments. Each token corresponds to an underlying asset — such as a share in a US Treasury money market fund — and tracks its value on-chain. This enables 24/7 market access, programmable transfers, and composability with DeFi protocols while maintaining exposure to conventional financial returns.
+
+Ondo GM's tokenized products include assets such as:
+
+- **OUSG** — Ondo Short-Term US Government Bond Fund, backed by short-duration US Treasuries
+- **OMMF** — Ondo Money Market Fund, backed by US government money market funds
+- **USDY** — US Dollar Yield token, offering yield-bearing stable value
+
+## What the API provides
+
+The Ondo GM API (hosted at `api.gm.ondo.finance`) is a REST API that exposes:
+
+| Capability | Description |
+|---|---|
+| Asset listings | Full list of supported RWA tokens with metadata |
+| Latest prices | Current NAV and price per token for all or individual assets |
+| Historical prices | Time-series price data for backtesting and charting |
+
+All endpoints return JSON responses and require API key authentication.
+
+## Who should use this API?
+
+The Ondo GM API is designed for:
+
+- **DeFi protocols** integrating RWA price feeds as oracle data
+- **Portfolio management tools** displaying current valuations
+- **Data aggregators** indexing on-chain asset prices
+- **Institutional investors** building custom reporting dashboards
+- **Developers** building applications on top of tokenized RWAs
+
+<Note>
+  Access to the Ondo GM API requires approval. Visit [gm.ondo.finance](https://gm.ondo.finance) to apply or contact [support@ondo.finance](mailto:support@ondo.finance).
+</Note>
+
+## Base URL
+
+All API requests are made to:
+
+```
+https://api.gm.ondo.finance
+```
+
+The current API version is `v1`. Prefix all endpoint paths with `/v1/`.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Get your API key and learn how to authenticate requests.
+  </Card>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Make your first API call in minutes.
+  </Card>
+</CardGroup>

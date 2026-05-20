@@ -1,0 +1,76 @@
+{
+  "projectType": "api-service",
+  "projectName": "Ondo Global Markets",
+  "projectDescription": "A REST API platform for accessing tokenized real-world assets including pricing data, asset metadata, and portfolio information for institutional and retail investors.",
+  "theme": "luma",
+  "primaryColor": "#1A1A2E",
+  "lightColor": "#4A90D9",
+  "darkColor": "#0D0D1A",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "authentication",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/assets",
+              "concepts/pricing",
+              "concepts/rate-limits"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/fetch-prices",
+              "guides/monitor-assets",
+              "guides/error-handling"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Assets",
+            "pages": [
+              "api-reference/assets/get-all-prices",
+              "api-reference/assets/get-asset",
+              "api-reference/assets/list-assets"
+            ]
+          },
+          {
+            "group": "Prices",
+            "pages": [
+              "api-reference/prices/latest",
+              "api-reference/prices/historical"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Real-time asset pricing for tokenized real-world assets",
+    "Historical price data for RWA tokens",
+    "Asset metadata and fund information",
+    "Secure API key authentication",
+    "RESTful JSON API with versioned endpoints"
+  ],
+  "publicApiSurface": [
+    "GET /v1/assets/all/prices/latest",
+    "GET /v1/assets/{assetId}/prices/latest",
+    "GET /v1/assets/{assetId}/prices/historical",
+    "GET /v1/assets",
+    "GET /v1/assets/{assetId}"
+  ]
+}

@@ -1,0 +1,82 @@
+---
+title: "Ondo GM API Rate Limits, Quotas, and Best Practices"
+description: "Learn about Ondo Global Markets API rate limit tiers, how to read usage headers on responses, and best practices for staying within your quota."
+sidebarTitle: "Rate Limits"
+---
+
+The Ondo GM API enforces rate limits to ensure fair usage and platform stability. Understanding these limits helps you design integrations that operate within your quota and handle throttling gracefully.
+
+## Rate limit tiers
+
+Rate limits depend on your API access tier, which is set when your account is provisioned. Contact [support@ondo.finance](mailto:support@ondo.finance) if you need a higher limit.
+
+| Tier | Requests per minute | Requests per day |
+|---|---|---|
+| Standard | 60 | 10,000 |
+| Professional | 300 | 100,000 |
+| Enterprise | Custom | Custom |
+
+## Rate limit headers
+
+Every API response includes headers that tell you your current usage:
+
+| Header | Description |
+|---|---|
+| `X-RateLimit-Limit` | Your maximum allowed requests per minute |
+| `X-RateLimit-Remaining` | Requests remaining in the current window |
+| `X-RateLimit-Reset` | Unix timestamp when the rate limit window resets |
+
+### Example response headers
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 47
+X-RateLimit-Reset: 1705344000
+```
+
+## Handling rate limit errors
+
+When you exceed your rate limit, the API returns a `429 Too Many Requests` response:
+
+```json
+{
+  "error": "rate_limit_exceeded",
+  "message": "You have exceeded your rate limit. Please wait before retrying.",
+  "retryAfter": 15
+}
+```
+
+The `retryAfter` field indicates the number of seconds to wait before making another request. Implement exponential backoff for robust retry logic:
+
+```javascript
+async function fetchWithRetry(url, options, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    const response = await fetch(url, options);
+
+    if (response.status !== 429) {
+      return response;
+    }
+
+    const retryAfter = parseInt(response.headers.get("X-RateLimit-Reset")) || 15;
+    await new Promise((resolve) => setTimeout(resolve, retryAfter * 1000));
+  }
+  throw new Error("Max retries exceeded");
+}
+```
+
+## Best practices
+
+<AccordionGroup>
+  <Accordion title="Cache price data locally">
+    Since asset prices update at most once per day, cache the latest price response and serve it from your own infrastructure. This dramatically reduces the number of API calls you need to make.
+  </Accordion>
+  <Accordion title="Use bulk endpoints">
+    Prefer `GET /v1/assets/all/prices/latest` over making individual requests per asset. One bulk call counts as one request regardless of how many assets are returned.
+  </Accordion>
+  <Accordion title="Implement exponential backoff">
+    If you receive a `429` response, wait before retrying. Start with the `retryAfter` value and double the wait time on each subsequent failure.
+  </Accordion>
+  <Accordion title="Monitor your usage">
+    Track the `X-RateLimit-Remaining` header in your integration. Alert yourself when it drops below 20% to avoid unexpected throttling.
+  </Accordion>
+</AccordionGroup>

@@ -1,0 +1,148 @@
+---
+title: "Handle Ondo GM API Errors with Exponential Backoff"
+description: "A guide to Ondo GM API error codes, their meanings, and how to implement robust retry logic and error handling in your integration."
+sidebarTitle: "Error Handling"
+---
+
+The Ondo GM API uses standard HTTP status codes and returns structured JSON error bodies. Handling errors correctly makes your integration resilient to transient failures, rate limiting, and configuration issues.
+
+## Error response format
+
+All error responses follow this structure:
+
+```json
+{
+  "error": "error_code",
+  "message": "A human-readable description of what went wrong.",
+  "retryAfter": 15
+}
+```
+
+The `retryAfter` field is only present on `429 Too Many Requests` responses and indicates how many seconds to wait before retrying.
+
+## HTTP status codes
+
+| Status | Code | Meaning | Action |
+|---|---|---|---|
+| `200` | — | Success | Process response normally |
+| `400` | `bad_request` | Invalid query parameters or malformed request | Fix the request before retrying |
+| `401` | `unauthorized` | Missing or malformed API key | Check that your `Authorization` header is correct |
+| `403` | `forbidden` | Valid key but insufficient permissions | Contact support to verify your access tier |
+| `404` | `not_found` | The requested asset ID does not exist | Verify the `assetId` using `GET /v1/assets` |
+| `429` | `rate_limit_exceeded` | Too many requests | Wait `retryAfter` seconds, then retry |
+| `500` | `internal_error` | Server-side error | Retry with exponential backoff |
+| `503` | `service_unavailable` | API temporarily down | Retry with exponential backoff |
+
+## Retry logic with exponential backoff
+
+For transient errors (`429`, `500`, `503`), implement exponential backoff to avoid overwhelming the API during recovery:
+
+<CodeGroup>
+```javascript JavaScript
+async function fetchWithRetry(url, options, maxRetries = 5) {
+  let delay = 1000; // Start with 1 second
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      const response = await fetch(url, options);
+
+      // Success
+      if (response.ok) return response;
+
+      const body = await response.json().catch(() => ({}));
+
+      // Rate limited — use the server's suggested wait time
+      if (response.status === 429) {
+        const retryAfter = (body.retryAfter ?? 15) * 1000;
+        console.warn(`Rate limited. Retrying after ${body.retryAfter}s...`);
+        await sleep(retryAfter);
+        continue;
+      }
+
+      // Non-retryable errors
+      if (response.status < 500) {
+        throw new Error(`API error ${response.status}: ${body.message}`);
+      }
+
+      // Server error — exponential backoff
+      if (attempt < maxRetries) {
+        console.warn(`Server error ${response.status}. Retrying in ${delay}ms...`);
+        await sleep(delay);
+        delay = Math.min(delay * 2, 30000); // Cap at 30 seconds
+      }
+    } catch (err) {
+      if (attempt === maxRetries) throw err;
+    }
+  }
+
+  throw new Error("Max retries exceeded");
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+```
+
+```python Python
+import time
+import requests
+from requests.exceptions import RequestException
+
+def fetch_with_retry(url, headers, max_retries=5):
+    delay = 1.0  # Start with 1 second
+
+    for attempt in range(max_retries + 1):
+        try:
+            response = requests.get(url, headers=headers, timeout=10)
+
+            if response.ok:
+                return response
+
+            body = response.json() if response.content else {}
+
+            # Rate limited
+            if response.status_code == 429:
+                retry_after = body.get("retryAfter", 15)
+                print(f"Rate limited. Retrying after {retry_after}s...")
+                time.sleep(retry_after)
+                continue
+
+            # Non-retryable client error
+            if response.status_code < 500:
+                raise ValueError(
+                    f"API error {response.status_code}: {body.get('message')}"
+                )
+
+            # Server error — exponential backoff
+            if attempt < max_retries:
+                print(f"Server error {response.status_code}. Retrying in {delay}s...")
+                time.sleep(delay)
+                delay = min(delay * 2, 30)  # Cap at 30 seconds
+
+        except RequestException as e:
+            if attempt == max_retries:
+                raise
+            time.sleep(delay)
+            delay = min(delay * 2, 30)
+
+    raise RuntimeError("Max retries exceeded")
+```
+</CodeGroup>
+
+## Common error scenarios
+
+<AccordionGroup>
+  <Accordion title="403 Forbidden on every request">
+    This typically means your API key has not been activated yet, or it has been revoked. Check:
+    - That you copied the full key without trailing whitespace
+    - That your account is in good standing
+    - Contact [support@ondo.finance](mailto:support@ondo.finance) if the issue persists
+  </Accordion>
+  <Accordion title="404 Not Found for an asset">
+    The `assetId` you used does not exist or has been retired. Fetch the canonical list with `GET /v1/assets` to get valid asset IDs. Asset IDs are case-sensitive and lowercase (e.g., `ousg`, not `OUSG`).
+  </Accordion>
+  <Accordion title="Stale prices / unexpected timestamps">
+    Prices are updated once per business day. On weekends and US federal holidays, the latest price will appear "old" — this is expected. Check the `timestamp` field to understand when the price was last set.
+  </Accordion>
+  <Accordion title="Empty data array in response">
+    A `200` response with an empty `data: []` array means no assets match your query filters. If you expect results, verify your filter parameters.
+  </Accordion>
+</AccordionGroup>

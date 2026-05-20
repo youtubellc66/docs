@@ -1,0 +1,122 @@
+---
+title: "GET /v1/assets/{assetId}/prices/latest — Asset Price"
+description: "GET /v1/assets/{assetId}/prices/latest — Returns the current NAV price for a single tokenized asset. Use when you need pricing for one specific asset."
+sidebarTitle: "Latest Price"
+---
+
+`GET /v1/assets/{assetId}/prices/latest` returns the most recent NAV price for a single specified asset. Use this endpoint when you only need the price of one asset and want to minimize response payload size.
+
+## Endpoint
+
+```
+GET https://api.gm.ondo.finance/v1/assets/{assetId}/prices/latest
+```
+
+## Authentication
+
+Requires a valid API key in the `Authorization` header:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+## Path parameters
+
+<ParamField path="assetId" type="string" required>
+  The unique identifier of the asset (e.g., `ousg`, `ommf`, `usdy`). Use `GET /v1/assets` to retrieve all valid asset IDs.
+</ParamField>
+
+## Request example
+
+<CodeGroup>
+```bash cURL
+curl https://api.gm.ondo.finance/v1/assets/ousg/prices/latest \
+  -H "Authorization: Bearer $ONDO_API_KEY"
+```
+
+```javascript JavaScript
+const assetId = "ousg";
+const response = await fetch(
+  `https://api.gm.ondo.finance/v1/assets/${assetId}/prices/latest`,
+  {
+    headers: { Authorization: `Bearer ${process.env.ONDO_API_KEY}` },
+  }
+);
+const { data } = await response.json();
+console.log(`${data.symbol}: $${data.price}`);
+```
+
+```python Python
+import os, requests
+from decimal import Decimal
+
+asset_id = "ousg"
+response = requests.get(
+    f"https://api.gm.ondo.finance/v1/assets/{asset_id}/prices/latest",
+    headers={"Authorization": f"Bearer {os.environ['ONDO_API_KEY']}"},
+)
+data = response.json()["data"]
+price = Decimal(data["price"])
+print(f"{data['symbol']}: ${price}")
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "data": {
+    "assetId": "ousg",
+    "symbol": "OUSG",
+    "name": "Ondo Short-Term US Government Bond Fund",
+    "price": "106.42",
+    "currency": "USD",
+    "timestamp": "2024-01-15T21:00:00Z",
+    "priceChange24h": "0.01",
+    "priceChangePct24h": "0.0094"
+  }
+}
+```
+
+## Response fields
+
+<ResponseField name="data" type="object">
+  A single price object for the requested asset.
+
+  <Expandable title="Price object fields">
+    <ResponseField name="assetId" type="string">
+      The asset identifier.
+    </ResponseField>
+    <ResponseField name="symbol" type="string">
+      Token ticker symbol.
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Full asset name.
+    </ResponseField>
+    <ResponseField name="price" type="string">
+      Current NAV price as a decimal string.
+    </ResponseField>
+    <ResponseField name="currency" type="string">
+      Denomination currency. Always `"USD"`.
+    </ResponseField>
+    <ResponseField name="timestamp" type="string">
+      ISO 8601 UTC timestamp of when this price was last published.
+    </ResponseField>
+    <ResponseField name="priceChange24h" type="string">
+      Absolute price change over the last 24 hours.
+    </ResponseField>
+    <ResponseField name="priceChangePct24h" type="string">
+      Percentage price change over the last 24 hours.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Error responses
+
+| Status | Code | Description |
+|---|---|---|
+| `401` | `unauthorized` | Missing or malformed API key. |
+| `403` | `forbidden` | API key lacks permission. |
+| `404` | `not_found` | Asset ID does not exist. Use `GET /v1/assets` to verify. |
+| `429` | `rate_limit_exceeded` | Rate limit exceeded. |
+| `500` | `internal_error` | Server error. Retry with backoff. |

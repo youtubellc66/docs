@@ -1,0 +1,135 @@
+---
+title: "GET /v1/assets — List All Supported Ondo GM Assets"
+description: "GET /v1/assets — Returns all supported tokenized real-world assets with metadata including symbol, contract address, chain, and active status."
+sidebarTitle: "List Assets"
+---
+
+`GET /v1/assets` returns the complete list of tokenized real-world assets supported by Ondo Global Markets, along with their metadata. Use this endpoint to discover available assets and retrieve the `assetId` values needed for other API calls.
+
+## Endpoint
+
+```
+GET https://api.gm.ondo.finance/v1/assets
+```
+
+## Authentication
+
+Requires a valid API key in the `Authorization` header:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+## Query parameters
+
+<ParamField query="isActive" type="boolean">
+  Filter assets by active status. Pass `true` to return only assets currently available for subscription and redemption. Defaults to returning all assets.
+</ParamField>
+
+<ParamField query="chainId" type="integer">
+  Filter assets deployed on a specific EVM chain. For example, `1` for Ethereum mainnet, `137` for Polygon.
+</ParamField>
+
+## Request example
+
+<CodeGroup>
+```bash cURL
+curl https://api.gm.ondo.finance/v1/assets \
+  -H "Authorization: Bearer $ONDO_API_KEY"
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://api.gm.ondo.finance/v1/assets",
+  {
+    headers: { Authorization: `Bearer ${process.env.ONDO_API_KEY}` },
+  }
+);
+const { data } = await response.json();
+```
+
+```python Python
+import os, requests
+
+response = requests.get(
+    "https://api.gm.ondo.finance/v1/assets",
+    headers={"Authorization": f"Bearer {os.environ['ONDO_API_KEY']}"},
+)
+assets = response.json()["data"]
+```
+</CodeGroup>
+
+## Response
+
+```json
+{
+  "data": [
+    {
+      "assetId": "ousg",
+      "symbol": "OUSG",
+      "name": "Ondo Short-Term US Government Bond Fund",
+      "description": "A tokenized fund investing in short-duration US Treasury securities.",
+      "decimals": 18,
+      "chainId": 1,
+      "contractAddress": "0x1B19C19393e2d034D8Ff31ff34c81252FcBbee92",
+      "currency": "USD",
+      "isActive": true
+    },
+    {
+      "assetId": "ommf",
+      "symbol": "OMMF",
+      "name": "Ondo Money Market Fund",
+      "description": "A tokenized US government money market fund.",
+      "decimals": 18,
+      "chainId": 1,
+      "contractAddress": "0x86Bc432064d7F933184909975a384C7E4c9d0977",
+      "currency": "USD",
+      "isActive": true
+    }
+  ]
+}
+```
+
+## Response fields
+
+<ResponseField name="data" type="array">
+  Array of asset objects.
+
+  <Expandable title="Asset object fields">
+    <ResponseField name="assetId" type="string">
+      Unique identifier used to reference this asset in API paths (e.g., `ousg`).
+    </ResponseField>
+    <ResponseField name="symbol" type="string">
+      Token ticker symbol (e.g., `OUSG`).
+    </ResponseField>
+    <ResponseField name="name" type="string">
+      Full human-readable name of the asset.
+    </ResponseField>
+    <ResponseField name="description" type="string">
+      Brief description of the underlying fund or instrument.
+    </ResponseField>
+    <ResponseField name="decimals" type="integer">
+      Number of decimal places for the ERC-20 token.
+    </ResponseField>
+    <ResponseField name="chainId" type="integer">
+      EVM chain ID where the token contract is deployed.
+    </ResponseField>
+    <ResponseField name="contractAddress" type="string">
+      On-chain ERC-20 contract address for the token.
+    </ResponseField>
+    <ResponseField name="currency" type="string">
+      Denomination currency. Always `"USD"`.
+    </ResponseField>
+    <ResponseField name="isActive" type="boolean">
+      Whether the asset is currently available for subscription and redemption.
+    </ResponseField>
+  </Expandable>
+</ResponseField>
+
+## Error responses
+
+| Status | Code | Description |
+|---|---|---|
+| `401` | `unauthorized` | API key is missing or malformed. |
+| `403` | `forbidden` | API key does not have permission to access this endpoint. |
+| `500` | `internal_error` | Server-side error. Retry with exponential backoff. |

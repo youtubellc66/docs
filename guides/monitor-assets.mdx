@@ -1,0 +1,147 @@
+---
+title: "Monitor Ondo GM Asset Prices: Poll, Cache, and Alert"
+description: "Build a price monitoring system that polls the Ondo GM API at the right cadence, caches results locally, and sends alerts on significant price changes."
+sidebarTitle: "Monitor Assets"
+---
+
+Since Ondo GM asset prices update once per business day, effective monitoring means polling at the right cadence, caching responses to avoid unnecessary API calls, and detecting meaningful changes when new prices are published. This guide walks through building a simple monitoring system.
+
+## Polling strategy
+
+Ondo GM prices are published once per US business day, typically after 6:00 PM Eastern Time. The most efficient polling pattern is:
+
+- **Poll once per hour** during US business day hours (9 AM – 10 PM ET)
+- **Skip polling** on weekends and US federal holidays
+- **Compare the `timestamp` field** to detect when a new price has been published
+
+<Note>
+  Polling more frequently than once per hour is wasteful — prices do not change intra-day. Excessive polling counts against your rate limit quota.
+</Note>
+
+## Simple price monitor (Node.js)
+
+The following example polls all asset prices every hour, detects when a new price is published, and logs the change:
+
+```javascript
+import fetch from "node-fetch";
+
+const API_KEY = process.env.ONDO_API_KEY;
+const BASE_URL = "https://api.gm.ondo.finance/v1";
+
+let lastKnownPrices = {}; // { assetId: { price, timestamp } }
+
+async function fetchLatestPrices() {
+  const response = await fetch(`${BASE_URL}/assets/all/prices/latest`, {
+    headers: { Authorization: `Bearer ${API_KEY}` },
+  });
+
+  if (!response.ok) {
+    console.error(`API error: ${response.status}`);
+    return null;
+  }
+
+  const { data } = await response.json();
+  return data;
+}
+
+async function checkForUpdates() {
+  const prices = await fetchLatestPrices();
+  if (!prices) return;
+
+  for (const asset of prices) {
+    const last = lastKnownPrices[asset.assetId];
+
+    if (!last || last.timestamp !== asset.timestamp) {
+      // New price published
+      if (last) {
+        const change = parseFloat(asset.priceChangePct24h);
+        console.log(
+          `[${asset.symbol}] New price: $${asset.price} ` +
+          `(${change > 0 ? "+" : ""}${change.toFixed(4)}%)`
+        );
+      }
+
+      lastKnownPrices[asset.assetId] = {
+        price: asset.price,
+        timestamp: asset.timestamp,
+      };
+    }
+  }
+}
+
+// Poll every 60 minutes
+setInterval(checkForUpdates, 60 * 60 * 1000);
+checkForUpdates(); // Run immediately on startup
+```
+
+## Caching responses
+
+Caching the latest price response locally lets you serve price data to your users without making an API call on every request. Invalidate the cache when the `timestamp` changes:
+
+```python
+import os
+import time
+import requests
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class PriceCache:
+    data: list
+    cached_at: float
+    timestamp: str
+
+cache: Optional[PriceCache] = None
+CACHE_TTL_SECONDS = 3600  # 1 hour
+
+def get_prices():
+    global cache
+    now = time.time()
+
+    if cache and (now - cache.cached_at) < CACHE_TTL_SECONDS:
+        return cache.data  # Return cached data
+
+    response = requests.get(
+        "https://api.gm.ondo.finance/v1/assets/all/prices/latest",
+        headers={"Authorization": f"Bearer {os.environ['ONDO_API_KEY']}"},
+    )
+    response.raise_for_status()
+    data = response.json()["data"]
+
+    cache = PriceCache(
+        data=data,
+        cached_at=now,
+        timestamp=data[0]["timestamp"] if data else "",
+    )
+    return data
+```
+
+## Setting price change alerts
+
+You can extend the monitoring system to send alerts when a price changes by more than a threshold:
+
+```javascript
+const ALERT_THRESHOLD_PCT = 0.5; // Alert on moves larger than 0.5%
+
+async function checkForUpdates() {
+  const prices = await fetchLatestPrices();
+  if (!prices) return;
+
+  for (const asset of prices) {
+    const changePct = Math.abs(parseFloat(asset.priceChangePct24h));
+
+    if (changePct >= ALERT_THRESHOLD_PCT) {
+      await sendAlert({
+        asset: asset.symbol,
+        price: asset.price,
+        changePct: asset.priceChangePct24h,
+      });
+    }
+  }
+}
+
+async function sendAlert({ asset, price, changePct }) {
+  // Integrate with your alerting system (Slack, PagerDuty, email, etc.)
+  console.log(`ALERT: ${asset} moved ${changePct}% to $${price}`);
+}
+```

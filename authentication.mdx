@@ -1,0 +1,75 @@
+---
+title: "Ondo Global Markets API: Authenticate with API Keys"
+description: "Learn how to obtain an Ondo Global Markets API key, pass it in requests using the Authorization Bearer header, and handle auth errors."
+sidebarTitle: "Authentication"
+---
+
+The Ondo Global Markets API uses API key authentication. Every request must include a valid API key in the `Authorization` header. Requests without a key, or with an invalid key, receive a `401 Unauthorized` or `403 Forbidden` response.
+
+## Obtaining an API key
+
+API keys are issued to approved partners. To request access:
+
+1. Visit [gm.ondo.finance](https://gm.ondo.finance) and complete the access request form.
+2. Once your application is reviewed and approved, you will receive an API key via email.
+3. Store your API key securely — treat it like a password. Do not commit it to version control or expose it in client-side code.
+
+<Warning>
+  Your API key grants full access to the API on your behalf. If your key is compromised, contact [support@ondo.finance](mailto:support@ondo.finance) immediately to have it revoked and rotated.
+</Warning>
+
+## Sending authenticated requests
+
+Include your API key in the `Authorization` header using the `Bearer` scheme:
+
+```
+Authorization: Bearer <your-api-key>
+```
+
+### Example request
+
+<CodeGroup>
+```bash cURL
+curl https://api.gm.ondo.finance/v1/assets/all/prices/latest \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+```javascript JavaScript
+const response = await fetch(
+  "https://api.gm.ondo.finance/v1/assets/all/prices/latest",
+  {
+    headers: {
+      Authorization: "Bearer YOUR_API_KEY",
+    },
+  }
+);
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+headers = {"Authorization": "Bearer YOUR_API_KEY"}
+response = requests.get(
+    "https://api.gm.ondo.finance/v1/assets/all/prices/latest",
+    headers=headers,
+)
+data = response.json()
+```
+</CodeGroup>
+
+## Authentication errors
+
+| Status code | Meaning |
+|---|---|
+| `401 Unauthorized` | No API key was provided, or the key format is invalid. |
+| `403 Forbidden` | The API key is valid but does not have permission to access the requested resource. |
+
+If you receive a `403 Forbidden` response, verify that:
+- Your API key has been activated (newly issued keys may have a brief activation period)
+- You are accessing an endpoint your key is authorized for
+- Your account has not been suspended
+
+<Tip>
+  Always use environment variables to store your API key. For example: `export ONDO_API_KEY="your-key-here"` and reference it as `$ONDO_API_KEY` in scripts.
+</Tip>

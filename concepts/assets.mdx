@@ -1,0 +1,59 @@
+---
+title: "Tokenized RWA Assets: Ondo GM Asset Types and Metadata"
+description: "Learn what tokenized real-world assets are, how Ondo GM structures asset identifiers, and what metadata fields the API returns for each asset."
+sidebarTitle: "Assets"
+---
+
+Ondo Global Markets issues and manages a set of tokenized real-world assets (RWAs). Each asset is a blockchain token that represents an ownership stake in an underlying financial instrument — such as a US Treasury fund or a money market fund. The Ondo GM API lets you query the full list of supported assets and retrieve detailed metadata for each one.
+
+## What is a tokenized asset?
+
+A tokenized asset is an on-chain token whose value is pegged to or derived from a traditional financial instrument. When you hold an Ondo GM token:
+
+- The token balance represents a proportional claim on the underlying fund
+- The token's price reflects the fund's current net asset value (NAV) per share
+- Yield accrues through price appreciation (the token becomes worth more USD over time) or through direct distributions, depending on the asset
+
+## Supported asset types
+
+Ondo GM currently supports the following categories of tokenized assets:
+
+| Category | Description | Examples |
+|---|---|---|
+| US Treasury | Short-duration US government bonds | OUSG |
+| Money Market | US government money market funds | OMMF |
+| Yield-bearing stablecoins | USD-denominated tokens with yield | USDY |
+
+## Asset identifiers
+
+Every asset has a unique `assetId` — a lowercase string used to reference it in API requests. For example:
+
+- `ousg` — Ondo Short-Term US Government Bond Fund
+- `ommf` — Ondo Money Market Fund
+- `usdy` — US Dollar Yield
+
+Use the `GET /v1/assets` endpoint to retrieve the canonical list of asset IDs and their full metadata.
+
+## Asset metadata fields
+
+When you call `GET /v1/assets` or `GET /v1/assets/{assetId}`, the response includes the following fields for each asset:
+
+| Field | Type | Description |
+|---|---|---|
+| `assetId` | string | Unique identifier used in API paths |
+| `symbol` | string | Token ticker symbol (e.g., `OUSG`) |
+| `name` | string | Full human-readable name |
+| `description` | string | Brief description of the underlying fund |
+| `decimals` | integer | Number of decimal places for the token |
+| `chainId` | integer | EVM chain ID where the token is deployed |
+| `contractAddress` | string | On-chain contract address of the token |
+| `currency` | string | Denomination currency (always `USD`) |
+| `isActive` | boolean | Whether the asset is currently active and tradeable |
+
+## On-chain vs. off-chain data
+
+The Ondo GM API provides off-chain data sourced directly from Ondo's fund administration systems. This includes NAV-based prices that are updated on a regular schedule (typically once per business day). For on-chain data such as real-time token balances or transfer events, query the relevant blockchain using the `contractAddress` returned by the API.
+
+<Tip>
+  Use `isActive: true` to filter assets that are currently available for subscription or redemption. Inactive assets may still have historical price data accessible via the API.
+</Tip>

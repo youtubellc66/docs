@@ -1,0 +1,51 @@
+---
+title: "Ondo Global Markets: Tokenized Real-World Asset API"
+description: "Ondo Global Markets provides institutional-grade access to tokenized real-world assets. Query live prices, asset metadata, and historical data via REST API."
+---
+
+Ondo Global Markets (GM) is a platform that brings tokenized real-world assets (RWAs) — including US Treasuries, money market funds, and other yield-bearing instruments — on-chain. The Ondo GM API gives you programmatic access to asset prices, metadata, and market data in real time.
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Make your first API call and retrieve live asset prices in minutes.
+  </Card>
+  <Card title="Authentication" icon="key" href="/authentication">
+    Learn how to obtain your API key and authenticate requests securely.
+  </Card>
+  <Card title="API Reference" icon="code" href="/api-reference/assets/list-assets">
+    Explore the full REST API: endpoints, parameters, and response schemas.
+  </Card>
+  <Card title="Core Concepts" icon="book" href="/concepts/assets">
+    Understand tokenized assets, pricing mechanics, and rate limits.
+  </Card>
+</CardGroup>
+
+## What you can build
+
+The Ondo GM API enables a range of use cases for financial applications and integrations:
+
+- **Real-time price feeds** — Fetch the latest NAV and price data for all supported RWA tokens
+- **Historical analysis** — Query historical price series to build charts or backtest strategies
+- **Asset discovery** — List and filter available tokenized assets with full metadata
+- **Portfolio dashboards** — Display current valuations for Ondo GM holdings
+
+## Getting started
+
+<Steps>
+  <Step title="Request API access">
+    Visit [gm.ondo.finance](https://gm.ondo.finance) and apply for API access. Once approved, you will receive an API key.
+  </Step>
+  <Step title="Authenticate your requests">
+    Include your API key in the `Authorization` header of every request: `Authorization: Bearer <your-api-key>`.
+  </Step>
+  <Step title="Fetch asset prices">
+    Call `GET /v1/assets/all/prices/latest` to retrieve live prices for all supported assets in a single request.
+  </Step>
+  <Step title="Explore the full API">
+    Browse the [API Reference](/api-reference/assets/list-assets) to discover all available endpoints and parameters.
+  </Step>
+</Steps>
+
+<Note>
+  The Ondo GM API is currently available to approved institutional and developer partners. Contact [support@ondo.finance](mailto:support@ondo.finance) if you need access.
+</Note>

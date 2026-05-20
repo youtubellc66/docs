@@ -1,0 +1,80 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "luma",
+  "name": "Ondo Global Markets",
+  "colors": {
+    "primary": "#1A1A2E",
+    "light": "#4A90D9",
+    "dark": "#0D0D1A"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "authentication",
+              "quickstart"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/assets",
+              "concepts/pricing",
+              "concepts/rate-limits"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/fetch-prices",
+              "guides/monitor-assets",
+              "guides/error-handling"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Assets",
+            "pages": [
+              "api-reference/assets/list-assets",
+              "api-reference/assets/get-asset",
+              "api-reference/assets/get-all-prices"
+            ]
+          },
+          {
+            "group": "Prices",
+            "pages": [
+              "api-reference/prices/latest",
+              "api-reference/prices/historical"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "Get Access",
+      "href": "https://gm.ondo.finance"
+    }
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/OndoFinance"
+    }
+  }
+}
